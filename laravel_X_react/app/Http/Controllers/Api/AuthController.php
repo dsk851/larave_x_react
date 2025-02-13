@@ -12,41 +12,49 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function signup(SignupRequest $request){
-         /**
-         * @var  \App\Models\User $user
-         */
-
+  public function signup(SignupRequest $request){
+    try {
         $data = $request->validated();
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password'=> bcrypt($data['password']),
         ]);
-
         $token = $user->createToken('main')->plainTextToken;
 
-        return respsonse(compact('user', 'token'))
+        // Log du token pour voir si ça pose problème
+        \Log::info('Token created: ' . $token);
+
+        return response(compact('user', 'token'));
+    } catch (\Exception $e) {
+        \Log::error('Signup error: ' . $e->getMessage()); // Log de l'erreur
+        return response([
+            'message' => 'An error occurred during signup',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
     public function login(LoginRequest $request){
         $credentials = $request->validated();
 
         if (!Auth::attempt($credentials)){
-            return respsonse([
+            return response([
                 'message' =>'Provided email address or password is incorrect'
-            ]);
+            ], 422);
         }
 
         /** @var User $user */
         $user = Auth::user();
         $token = $user->createToken('main')->plainTextToken;
 
-        return respsonse(compact('user','token'))
+        return response(compact('user','token'));
     }
 
     public function logout(Request $request){
         /** @var User $user */
         $user = $request->user();
-        $user->
+        $user->currentAccessToken()->delete();
+
+        return response('', 204);
     }
 }

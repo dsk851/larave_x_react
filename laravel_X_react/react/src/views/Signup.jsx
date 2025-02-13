@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useStateContext } from "../contexts/ContextProvider";
 import axiosClient from "../axios-client";
 
@@ -10,7 +10,8 @@ export default function Signup() {
   const passwordRef = useRef();
   const passwordConfirmationRef = useRef();
 
-  const { setUser, setToken } = useStateContext()
+  const [errors, setErrors] = useState(null);
+  const { setUser, setToken } = useStateContext();
 
   const onSubmit = (ev) => {
     ev.preventDefault()
@@ -20,16 +21,20 @@ export default function Signup() {
       password: passwordRef.current.value,
       password_confirmation: passwordConfirmationRef.current.value,
     }
-
+    setErrors(null)
+    console.log(payload);
     axiosClient.post("/signup", payload)
       .then(({data}) => {
         setUser(data.user)
         setToken(data.token)
       })
       .catch( err => {
-        const response = err.reponse;
+        const response = err.response;
         if(response && response.status === 422){
-          console.log(response.data.errors)
+          console.log(response.data.errors);
+          setErrors(response.data.errors)
+        }else{
+          console.log('mdr')
         }
       })
   }
@@ -39,7 +44,13 @@ export default function Signup() {
           <div className="form">
             <form onSubmit={onSubmit}>
               <h1 className="title">Create an account for free</h1>
-              <input type="text" placeholder="Full name" ref={nameRef}/>
+              {errors && <div className="alert">
+                {Object.keys(errors).map( key => (
+                  <p key={key}> {errors[key][0]} </p>
+                )
+                )}
+              </div> }
+              <input placeholder="Full name" ref={nameRef}/>
               <input type="email" placeholder="Email" ref={emailRef}/>
               <input type="password" placeholder="Password" ref={passwordRef} />
               <input type="password" placeholder="Password Confirmation" ref={passwordConfirmationRef}/>
