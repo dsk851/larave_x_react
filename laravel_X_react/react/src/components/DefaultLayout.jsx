@@ -6,7 +6,7 @@ import axiosClient from "../axios-client";
 
 export default function DefaultLayout(){
 
-  const {user, token, setUser,setToken} = useStateContext()
+  const {user, token,notification, setUser,setToken} = useStateContext()
 
   useEffect(()=>{
     axiosClient.get('/user')
@@ -39,10 +39,11 @@ export default function DefaultLayout(){
         </aside>
 
         <div className="content">
+
           <header>
             <div>Header</div>
             <div>
-              {user.name}
+            {user.name} &nbsp;&nbsp;
               <a href="#" onClick={onLogout} className="btn-logout"> Log Out</a>
             </div>
           </header>
@@ -50,6 +51,11 @@ export default function DefaultLayout(){
             <Outlet/>
           </main>
         </div>
+
+        {notification &&
+        <div className="notification">
+          {notification}
+        </div> }
     </div>
   )
 }
